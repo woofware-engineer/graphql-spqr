@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@SuppressWarnings("NullableProblems")
 class RelayDataFetchingEnvironmentDecorator implements DataFetchingEnvironment {
 
     private final DataFetchingEnvironment delegate;

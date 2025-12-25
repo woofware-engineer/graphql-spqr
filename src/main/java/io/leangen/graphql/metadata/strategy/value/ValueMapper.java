@@ -1,7 +1,10 @@
 package io.leangen.graphql.metadata.strategy.value;
 
+import graphql.GraphQLContext;
+
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
+import java.util.Locale;
 
 public interface ValueMapper {
 
@@ -15,5 +18,5 @@ public interface ValueMapper {
 
     <T> T fromString(String json, AnnotatedType type) throws InputParsingException;
     
-    String toString(Object output, AnnotatedType type);
+    String toString(Object output, AnnotatedType type, GraphQLContext context, Locale locale);
 }

@@ -10,8 +10,8 @@ import io.leangen.graphql.execution.ResolverInterceptor;
 import io.leangen.graphql.execution.ResolverInterceptorFactory;
 import io.leangen.graphql.execution.ResolverInterceptorFactoryParams;
 import io.leangen.graphql.generator.*;
-import io.leangen.graphql.generator.mapping.SchemaTransformer;
 import io.leangen.graphql.generator.mapping.*;
+import io.leangen.graphql.generator.mapping.SchemaTransformer;
 import io.leangen.graphql.generator.mapping.common.*;
 import io.leangen.graphql.generator.mapping.core.CompletableFutureAdapter;
 import io.leangen.graphql.generator.mapping.core.DataFetcherResultAdapter;
@@ -891,14 +891,14 @@ public class GraphQLSchemaGenerator implements GeneratorConfigurer<GraphQLSchema
     private boolean isRealType(GraphQLNamedType type) {
         // Reject introspection types
         return !(GraphQLUtils.isIntrospectionType(type)
-                // Reject quasi-types
-                || type instanceof GraphQLTypeReference
-                || type instanceof GraphQLArgument
-                || type instanceof GraphQLDirective
-                // Reject root types
-                || type.getName().equals(messageBundle.interpolate(queryRoot))
-                || type.getName().equals(messageBundle.interpolate(mutationRoot))
-                || type.getName().equals(messageBundle.interpolate(subscriptionRoot)));
+                 // Reject quasi-types
+                 || type instanceof GraphQLTypeReference
+                 || type instanceof GraphQLArgument
+                 || type instanceof GraphQLDirective
+                 // Reject root types
+                 || type.getName().equals(messageBundle.interpolate(queryRoot))
+                 || type.getName().equals(messageBundle.interpolate(mutationRoot))
+                 || type.getName().equals(messageBundle.interpolate(subscriptionRoot)));
     }
 
     private Type checkType(Type type) {
@@ -908,14 +908,14 @@ public class GraphQLSchemaGenerator implements GeneratorConfigurer<GraphQLSchema
         Class<?> clazz = ClassUtils.getRawType(type);
         if (ClassUtils.isProxy(clazz)) {
             throw new TypeMappingException("The registered object of type " + clazz.getName() +
-                    " appears to be a dynamically generated proxy, so its type can not be reliably determined." +
-                    " Provide the type explicitly when registering the bean." +
-                    " For details and solutions see " + Urls.Errors.DYNAMIC_PROXIES);
+                                           " appears to be a dynamically generated proxy, so its type can not be reliably determined." +
+                                           " Provide the type explicitly when registering the bean." +
+                                           " For details and solutions see " + Urls.Errors.DYNAMIC_PROXIES);
         }
         if (ClassUtils.isMissingTypeParameters(type)) {
             throw new TypeMappingException("The registered object is of generic type " + type.getTypeName() + "." +
-                    " Provide the full type explicitly when registering the bean." +
-                    " For details and solutions see " + Urls.Errors.TOP_LEVEL_GENERICS);
+                                           " Provide the full type explicitly when registering the bean." +
+                                           " For details and solutions see " + Urls.Errors.TOP_LEVEL_GENERICS);
         }
         return type;
     }
@@ -978,11 +978,7 @@ public class GraphQLSchemaGenerator implements GeneratorConfigurer<GraphQLSchema
 
         @Override
         public DataFetcher<?> getDataFetcher(GraphQLFieldsContainer parentType, GraphQLFieldDefinition fieldDef) {
-            if (parentType instanceof GraphQLObjectType) {
-                return codeRegistry.getDataFetcher((GraphQLObjectType) parentType, fieldDef);
-            } else {
-                return null;
-            }
+            return codeRegistry.getDataFetcher(FieldCoordinates.coordinates(parentType.getName(), fieldDef.getName()), fieldDef);
         }
     }
 

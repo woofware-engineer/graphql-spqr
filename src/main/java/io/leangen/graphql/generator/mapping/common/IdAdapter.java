@@ -7,12 +7,7 @@ import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.graphql.annotations.GraphQLId;
 import io.leangen.graphql.execution.GlobalEnvironment;
 import io.leangen.graphql.execution.ResolutionEnvironment;
-import io.leangen.graphql.generator.mapping.ArgumentInjector;
-import io.leangen.graphql.generator.mapping.ArgumentInjectorParams;
-import io.leangen.graphql.generator.mapping.InputConverter;
-import io.leangen.graphql.generator.mapping.OutputConverter;
-import io.leangen.graphql.generator.mapping.TypeMapper;
-import io.leangen.graphql.generator.mapping.TypeMappingEnvironment;
+import io.leangen.graphql.generator.mapping.*;
 import io.leangen.graphql.metadata.strategy.value.ValueMapper;
 
 import java.lang.reflect.AnnotatedElement;
@@ -41,7 +36,7 @@ public class IdAdapter implements TypeMapper, ArgumentInjector, OutputConverter<
 
     @Override
     public String convertOutput(Object original, AnnotatedType type, ResolutionEnvironment resolutionEnvironment) {
-        final String id = resolutionEnvironment.valueMapper.toString(original, type);
+        final String id = resolutionEnvironment.valueMapper.toString(original, type, resolutionEnvironment.dataFetchingEnvironment.getGraphQlContext(), resolutionEnvironment.dataFetchingEnvironment.getLocale());
         if (type.getAnnotation(GraphQLId.class).relayId()) {
             return resolutionEnvironment.globalEnvironment.relay.toGlobalId(resolutionEnvironment.parentType.getName(), id);
         }

@@ -2,12 +2,13 @@ package io.leangen.graphql.metadata.strategy.value.jackson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.introspect.*;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
+import graphql.GraphQLContext;
 import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.graphql.annotations.GraphQLInputField;
 import io.leangen.graphql.execution.GlobalEnvironment;
@@ -29,10 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.leangen.geantyref.GenericTypeReflector.isBoxType;
@@ -77,9 +75,9 @@ public class JacksonValueMapper implements ValueMapper, InputFieldBuilder {
     }
 
     @Override
-    public String toString(Object output, AnnotatedType type) {
+    public String toString(Object output, AnnotatedType type, GraphQLContext context, Locale locale) {
         if (output != null && Scalars.isScalar(type.getType())) {
-            output = Scalars.toGraphQLScalarType(type.getType()).getCoercing().serialize(output);
+            output = Scalars.toGraphQLScalarType(type.getType()).getCoercing().serialize(output, context, locale);
         }
         if (output == null || output instanceof String) {
             return (String) output;

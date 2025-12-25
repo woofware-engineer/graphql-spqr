@@ -1,23 +1,11 @@
 package io.leangen.graphql.util;
 
+import graphql.GraphQLContext;
 import graphql.GraphQLException;
-import graphql.language.ArrayValue;
-import graphql.language.BooleanValue;
-import graphql.language.EnumValue;
-import graphql.language.FloatValue;
-import graphql.language.IntValue;
-import graphql.language.NullValue;
-import graphql.language.ObjectValue;
-import graphql.language.StringValue;
-import graphql.language.Value;
-import graphql.language.VariableReference;
-import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
-import graphql.schema.GraphQLAppliedDirective;
-import graphql.schema.GraphQLNonNull;
-import graphql.schema.GraphQLScalarType;
+import graphql.execution.CoercedVariables;
+import graphql.language.*;
+import graphql.scalars.ExtendedScalars;
+import graphql.schema.*;
 import io.leangen.geantyref.GenericTypeReflector;
 
 import java.lang.reflect.ParameterizedType;
@@ -29,41 +17,16 @@ import java.net.URI;
 import java.net.URL;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static graphql.Scalars.GraphQLBoolean;
 import static graphql.Scalars.GraphQLFloat;
 import static graphql.Scalars.GraphQLInt;
 import static graphql.Scalars.GraphQLString;
-import static graphql.scalars.ExtendedScalars.GraphQLBigDecimal;
-import static graphql.scalars.ExtendedScalars.GraphQLBigInteger;
-import static graphql.scalars.ExtendedScalars.GraphQLByte;
-import static graphql.scalars.ExtendedScalars.GraphQLChar;
-import static graphql.scalars.ExtendedScalars.GraphQLLong;
-import static graphql.scalars.ExtendedScalars.GraphQLShort;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "rawtypes"})
 public class Scalars {
 
     public static final GraphQLNonNull RelayId = new GraphQLNonNull(graphql.Scalars.GraphQLID);
@@ -350,7 +313,7 @@ public class Scalars {
         }
 
         @Override
-        public Object parseValue(Object input) {
+        public Object parseValue(Object input, GraphQLContext context, Locale locale) {
             if (input instanceof Map) {
                 return input;
             }
@@ -358,13 +321,8 @@ public class Scalars {
         }
 
         @Override
-        public Object parseLiteral(Object input) throws CoercingParseLiteralException {
-            return parseLiteral(input, Collections.emptyMap());
-        }
-
-        @Override
-        public Object parseLiteral(Object input, Map<String, Object> variables) {
-            return parseObjectValue(literalOrException(input, ObjectValue.class), variables);
+        public Object parseLiteral(Value input, CoercedVariables variables, GraphQLContext context, Locale locale) {
+            return parseObjectValue(literalOrException(input, ObjectValue.class), variables, context, locale);
         }
     };
 
@@ -379,24 +337,19 @@ public class Scalars {
 
     private static final Coercing<Object, Object> OBJECT_SCALAR_COERCION = new Coercing<Object, Object>() {
         @Override
-        public Object serialize(Object dataFetcherResult) {
+        public Object serialize(Object dataFetcherResult, GraphQLContext context, Locale locale) {
             GraphQLScalarType scalar = toGraphQLScalarType(dataFetcherResult.getClass());
-            return scalar != null ? scalar.getCoercing().serialize(dataFetcherResult) : dataFetcherResult;
+            return scalar != null ? scalar.getCoercing().serialize(dataFetcherResult, context, locale) : dataFetcherResult;
         }
 
         @Override
-        public Object parseValue(Object input) {
+        public Object parseValue(Object input, GraphQLContext context, Locale locale) {
             return input;
         }
 
         @Override
-        public Object parseLiteral(Object input) throws CoercingParseLiteralException {
-            return parseLiteral(input, Collections.emptyMap());
-        }
-
-        @Override
-        public Object parseLiteral(Object input, Map<String, Object> variables) {
-            return parseObjectValue(((Value) input), variables);
+        public Object parseLiteral(Value input, CoercedVariables variables, GraphQLContext context, Locale locale) {
+            return parseObjectValue(input, variables, context, locale);
         }
     };
 
@@ -409,7 +362,7 @@ public class Scalars {
                 .build();
     }
 
-    private static Object parseObjectValue(Value value, Map<String, Object> variables) {
+    private static Object parseObjectValue(Value value, CoercedVariables variables, GraphQLContext context, Locale locale) {
         if (value instanceof StringValue) {
             return ((StringValue) value).getValue();
         }
@@ -430,7 +383,7 @@ public class Scalars {
         }
         if (value instanceof ArrayValue) {
             return ((ArrayValue) value).getValues().stream()
-                    .map(v -> parseObjectValue(v, variables))
+                    .map(v -> parseObjectValue(v, variables, context, locale))
                     .collect(Collectors.toList());
         }
         if (value instanceof VariableReference) {
@@ -439,7 +392,7 @@ public class Scalars {
         if (value instanceof ObjectValue) {
             Map<String, Object> map = new LinkedHashMap<>();
             ((ObjectValue) value).getObjectFields().forEach(field ->
-                    map.put(field.getName(), parseObjectValue(field.getValue(), variables)));
+                    map.put(field.getName(), parseObjectValue(field.getValue(), variables, context, locale)));
             return map;
         }
         //Should never happen
@@ -546,24 +499,24 @@ public class Scalars {
 
     private static Map<Type, GraphQLScalarType> getScalarMapping() {
         Map<Type, GraphQLScalarType> scalarMapping = new HashMap<>();
-        scalarMapping.put(Character.class, GraphQLChar);
-        scalarMapping.put(char.class, GraphQLChar);
+        scalarMapping.put(Character.class, ExtendedScalars.GraphQLChar);
+        scalarMapping.put(char.class, ExtendedScalars.GraphQLChar);
         scalarMapping.put(String.class, GraphQLString);
-        scalarMapping.put(Byte.class, GraphQLByte);
-        scalarMapping.put(byte.class, GraphQLByte);
-        scalarMapping.put(Short.class, GraphQLShort);
-        scalarMapping.put(short.class, GraphQLShort);
+        scalarMapping.put(Byte.class, ExtendedScalars.GraphQLByte);
+        scalarMapping.put(byte.class, ExtendedScalars.GraphQLByte);
+        scalarMapping.put(Short.class, ExtendedScalars.GraphQLShort);
+        scalarMapping.put(short.class, ExtendedScalars.GraphQLShort);
         scalarMapping.put(Integer.class, GraphQLInt);
         scalarMapping.put(int.class, GraphQLInt);
-        scalarMapping.put(Long.class, GraphQLLong);
-        scalarMapping.put(long.class, GraphQLLong);
+        scalarMapping.put(Long.class, ExtendedScalars.GraphQLLong);
+        scalarMapping.put(long.class, ExtendedScalars.GraphQLLong);
         scalarMapping.put(Float.class, GraphQLFloat);
         scalarMapping.put(float.class, GraphQLFloat);
         scalarMapping.put(Double.class, GraphQLFloat);
         scalarMapping.put(double.class, GraphQLFloat);
-        scalarMapping.put(BigInteger.class, GraphQLBigInteger);
-        scalarMapping.put(BigDecimal.class, GraphQLBigDecimal);
-        scalarMapping.put(Number.class, GraphQLBigDecimal);
+        scalarMapping.put(BigInteger.class, ExtendedScalars.GraphQLBigInteger);
+        scalarMapping.put(BigDecimal.class, ExtendedScalars.GraphQLBigDecimal);
+        scalarMapping.put(Number.class, ExtendedScalars.GraphQLBigDecimal);
         scalarMapping.put(Boolean.class, GraphQLBoolean);
         scalarMapping.put(boolean.class, GraphQLBoolean);
         scalarMapping.put(UUID.class, GraphQLUuid);

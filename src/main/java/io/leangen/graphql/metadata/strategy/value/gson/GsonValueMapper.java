@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import graphql.GraphQLContext;
 import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.graphql.annotations.GraphQLInputField;
 import io.leangen.graphql.execution.GlobalEnvironment;
@@ -68,9 +69,9 @@ public class GsonValueMapper implements ValueMapper, InputFieldBuilder {
     }
 
     @Override
-    public String toString(Object output, AnnotatedType type) {
+    public String toString(Object output, AnnotatedType type, GraphQLContext context, Locale locale) {
         if (output != null && Scalars.isScalar(type.getType())) {
-            output = Scalars.toGraphQLScalarType(type.getType()).getCoercing().serialize(output);
+            output = Scalars.toGraphQLScalarType(type.getType()).getCoercing().serialize(output, context, locale);
         }
         if (output == null || output instanceof String) {
             return (String) output;

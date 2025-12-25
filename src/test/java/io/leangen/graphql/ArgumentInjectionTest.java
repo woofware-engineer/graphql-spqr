@@ -95,7 +95,7 @@ public class ArgumentInjectionTest {
     }
 
     public static class RootContext {
-        private String target;
+        private final String target;
 
         RootContext(String target) {
             this.target = target;
@@ -114,7 +114,7 @@ public class ArgumentInjectionTest {
 
         @Override
         public String getTarget() {
-            return TARGET_VALUE; //getter doesn't return field value
+            return TARGET_VALUE; //getter doesn't return the field value
         }
     }
 }

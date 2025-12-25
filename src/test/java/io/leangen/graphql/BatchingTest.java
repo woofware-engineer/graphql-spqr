@@ -161,7 +161,7 @@ public class BatchingTest {
         ExecutionResult result;
         result = batchExe.execute(ExecutionInput.newExecutionInput()
                 .query("{candidates {" + fieldName + " {startYear tier}}}")
-                .context(runBatched)
+                .graphQLContext(Map.of(AtomicBoolean.class, runBatched))
                 .build());
         assertNoErrors(result);
         assertTrue("Query didn't run in batched mode", runBatched.get());

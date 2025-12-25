@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
-import com.fasterxml.jackson.databind.introspect.*;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
@@ -66,10 +69,10 @@ public class AnnotationIntrospector extends JacksonAnnotationIntrospector {
                 .orElse(super.findPropertyDescription(annotated));
     }
 
-    @Override
-    public boolean hasIgnoreMarker(AnnotatedMember m) {
-        return super.hasIgnoreMarker(m) || !inclusionStrategy.includeInputField(m.getAnnotated());
-    }
+    //@Override
+    //public boolean hasIgnoreMarker(AnnotatedMember m) {
+    //    return super.hasIgnoreMarker(m) || !inclusionStrategy.includeInputField(m.getAnnotated());
+    //}
 
     /**
      * Provides a {@link TypeResolverBuilder} configured the same way as if the given {@link AnnotatedClass}

@@ -41,7 +41,8 @@ public class NonNullMapper implements TypeMapper, SchemaTransformer {
             "jakarta.validation.constraints.NotEmpty",
             "javax.validation.constraints.NotBlank",
             "jakarta.validation.constraints.NotBlank",
-            "org.eclipse.microprofile.graphql.NonNull"
+            "org.eclipse.microprofile.graphql.NonNull",
+            "org.jspecify.annotations.NonNull"
     };
 
     public NonNullMapper() {

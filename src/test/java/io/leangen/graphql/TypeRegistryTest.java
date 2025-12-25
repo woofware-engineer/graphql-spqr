@@ -127,7 +127,11 @@ public class TypeRegistryTest {
         if (t1 instanceof GraphQLFieldsContainer) {
             GraphQLFieldsContainer c = (GraphQLFieldsContainer) t1;
             c.getFieldDefinitions().forEach(fieldDef ->
-                    assertSame(code1.getDataFetcher(FieldCoordinates.coordinates(c, fieldDef), fieldDef), code2.getDataFetcher(FieldCoordinates.coordinates(c, fieldDef), fieldDef)));
+            {
+                DataFetcher<?> fetcher1 = code1.getDataFetcher(FieldCoordinates.coordinates(c, fieldDef), fieldDef);
+                DataFetcher<?> fetcher2 = code2.getDataFetcher(FieldCoordinates.coordinates(c, fieldDef), fieldDef);
+                assertSame(fetcher1, fetcher2);
+            });
         }
     }
 

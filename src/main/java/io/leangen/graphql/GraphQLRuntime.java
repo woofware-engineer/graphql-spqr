@@ -124,7 +124,8 @@ public class GraphQLRuntime {
             DataLoaderOptions defaultOptions = dataLoaderOptions.getOrDefault(null,
                     DataLoaderOptions.newOptions()
                             .setBatchLoaderContextProvider(input::getContext)
-                            .setCacheKeyFunction(new CacheKeyFunction()));
+                            .setCacheKeyFunction(new CacheKeyFunction())
+                            .build());
             DataLoaderRegistry registry = input.getDataLoaderRegistry() != EmptyDataLoaderRegistryInstance.EMPTY_DATALOADER_REGISTRY
                     ? input.getDataLoaderRegistry()
                     : new DataLoaderRegistry();

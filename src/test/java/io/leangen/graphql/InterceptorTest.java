@@ -25,6 +25,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static io.leangen.graphql.support.LogAssertions.assertWarningsLogged;
@@ -45,7 +46,7 @@ public class InterceptorTest {
 
         GraphQL graphQL = GraphQL.newGraphQL(schema).build();
         ExecutionInput input = ExecutionInput.newExecutionInput()
-                .context(new User("RegularUser"))
+                .graphQLContext(Map.of(User.class, new User("RegularUser")))
                 .query("{user}")
                 .build();
 
@@ -146,7 +147,7 @@ public class InterceptorTest {
         @Override
         public Object aroundInvoke(InvocationContext context, Continuation continuation) throws Exception {
             Auth auth = context.getResolver().getExecutable().getDelegate().getAnnotation(Auth.class);
-            User currentUser = context.getResolutionEnvironment().dataFetchingEnvironment.getContext();
+            User currentUser = context.getResolutionEnvironment().dataFetchingEnvironment.getGraphQlContext().get(User.class);
             if (auth != null && !currentUser.getRoles().containsAll(Arrays.asList(auth.rolesRequired()))) {
                 throw new IllegalAccessException("Access denied"); // or return null
             }
